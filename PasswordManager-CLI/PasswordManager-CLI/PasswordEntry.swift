@@ -7,7 +7,7 @@
 
 /*
  PasswordEntry.swift:
- This struct constructs a new PasswordEntry for use by PasswordManager.swift.
+ This struct constructs a new PasswordEntry for use by PasswordLibrary.swift.
  The constructor is used to create a new entry in the manager, assigning it a new UUID using the UUID() function.
  */
 

@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		34CB866C2C55D6ED003292FD /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34CB866B2C55D6ED003292FD /* main.swift */; };
 		34CB86732C55D76A003292FD /* PasswordEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34CB86722C55D76A003292FD /* PasswordEntry.swift */; };
-		34CB86752C55D89D003292FD /* PasswordManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34CB86742C55D89D003292FD /* PasswordManager.swift */; };
+		34CB86752C55D89D003292FD /* PasswordLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34CB86742C55D89D003292FD /* PasswordLibrary.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,7 +28,7 @@
 		34CB86682C55D6ED003292FD /* PasswordManager-CLI */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "PasswordManager-CLI"; sourceTree = BUILT_PRODUCTS_DIR; };
 		34CB866B2C55D6ED003292FD /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		34CB86722C55D76A003292FD /* PasswordEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordEntry.swift; sourceTree = "<group>"; };
-		34CB86742C55D89D003292FD /* PasswordManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordManager.swift; sourceTree = "<group>"; };
+		34CB86742C55D89D003292FD /* PasswordLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordLibrary.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,7 +63,7 @@
 			children = (
 				34CB866B2C55D6ED003292FD /* main.swift */,
 				34CB86722C55D76A003292FD /* PasswordEntry.swift */,
-				34CB86742C55D89D003292FD /* PasswordManager.swift */,
+				34CB86742C55D89D003292FD /* PasswordLibrary.swift */,
 			);
 			path = "PasswordManager-CLI";
 			sourceTree = "<group>";
@@ -126,7 +126,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				34CB86752C55D89D003292FD /* PasswordManager.swift in Sources */,
+				34CB86752C55D89D003292FD /* PasswordLibrary.swift in Sources */,
 				34CB866C2C55D6ED003292FD /* main.swift in Sources */,
 				34CB86732C55D76A003292FD /* PasswordEntry.swift in Sources */,
 			);
