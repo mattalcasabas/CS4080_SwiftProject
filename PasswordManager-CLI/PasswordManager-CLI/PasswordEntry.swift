@@ -5,6 +5,12 @@
 //  Created by Matthew Alcasabas on 7/27/24.
 //
 
+/*
+ PasswordEntry.swift:
+ This struct constructs a new PasswordEntry for use by PasswordManager.swift.
+ The constructor is used to create a new entry in the manager, assigning it a new UUID using the UUID() function.
+ */
+
 import Foundation
 
 struct PasswordEntry: Identifiable, Codable {
