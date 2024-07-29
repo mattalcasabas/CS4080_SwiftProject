@@ -25,6 +25,18 @@ func getLibrary() -> String {
     }
 }
 
+func createPasswordFile(directory: String) -> String {
+    print("No password file found in this directory, Create?")
+    print("1. Yes")
+    print("2. No")
+    let createFile = Int(readLine() ?? "2") ?? 2
+    if (createFile == 1) {
+        let fileManager = FileManager.default
+        fileManager.createFile(atPath: (directory + "/passwords.json"), contents: nil)
+        return directory
+    }
+    return "e"
+}
 
 func createLibrary() -> String {
     let fileManager = FileManager.default
@@ -47,7 +59,7 @@ func openPasswordLibrary() -> String {
     let directory = readLine()!
     
     do {
-        var files = try fileManager.contentsOfDirectory(atPath: directory)
+        let files = try fileManager.contentsOfDirectory(atPath: directory)
         for file in files {
             if file == "passwords.json" {
                 return directory
@@ -56,7 +68,8 @@ func openPasswordLibrary() -> String {
     } catch {
         return "e"
     }
-    return "e2"
+    var x = createPasswordFile(directory: directory)
+    return x
 }
 
 func loadJson(fileName: String) -> [PasswordEntry]? {
@@ -67,7 +80,7 @@ func loadJson(fileName: String) -> [PasswordEntry]? {
         let passwords = try decoder.decode([PasswordEntry].self, from: data)
         return passwords
     } catch {
-        print("e")
+        print("No passwords found, try creating one.")
     }
         
     return []
@@ -75,10 +88,29 @@ func loadJson(fileName: String) -> [PasswordEntry]? {
 
 func readEntry(directory: String) {
     let x = loadJson(fileName: (directory + "/passwords.json"))
-    
-    for entry in x! {
-        print("\(entry.id), \(entry.siteName), \(entry.username), \(entry.password)")
+    print("Account entries:")
+    for (i, entry) in x!.enumerated() {
+        print("\(i+1): \(entry.siteName), \(entry.username)")
     }
+    var viewAccounts = true
+    repeat {
+        print("Select an account to view:")
+        var userSelect = Int(readLine() ?? "-1") ?? -1
+        if (userSelect != -1) && (userSelect <= x!.count) {
+            var curPass = x![userSelect - 1]
+            print("Website: \(curPass.siteName)")
+            print("Username: \(curPass.username)")
+            print("Password: \(curPass.password)")
+        }
+        
+        print("View another account?")
+        print("1: yes")
+        print("2: no")
+        
+        var moreAcc = Int(readLine() ?? "2") ?? 2
+        if moreAcc == 2 {viewAccounts = false}
+        
+    } while viewAccounts
 }
 
 func createEntry(directory: String) {
@@ -95,6 +127,7 @@ func deleteEntry(directory: String) {
 
 func passwordInteract(directory: String) {
     stayInProgram = true
+    var passwordChoice: Int
     repeat {
         print("What would you like to do?")
         print(" 1. Read password entry")
@@ -103,7 +136,7 @@ func passwordInteract(directory: String) {
         print(" 4. Delete an existing entry")
         print(" 5. Go back")
         
-        var passwordChoice = Int(readLine() ?? "-1") ?? -1
+        passwordChoice = Int(readLine() ?? "-1") ?? -1
         
         switch passwordChoice {
         case 1:
@@ -131,7 +164,7 @@ var curDirectory: String
 print("Welcome to the password manager!")
 
 repeat {
-    var curDirectory = getLibrary()
+    curDirectory = getLibrary()
     
     if (curDirectory.first == "e") {
         print("error")
@@ -139,10 +172,10 @@ repeat {
     } else if curDirectory == "q" {
         stayInProgram = false
         continue
+    } else if curDirectory == "." {
+        continue
     } else {
         passwordInteract(directory: curDirectory)
     }
     
 } while stayInProgram
-
-var curPass = PasswordEntry(siteName: "google.com", username: "person1231", password: "GIBERUSG")
