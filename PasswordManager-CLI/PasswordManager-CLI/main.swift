@@ -1,10 +1,10 @@
-//
-//  main.swift
-//  PasswordManager-CLI
-//
-//  Created by Matthew Alcasabas on 7/27/24.
-//
 import Foundation
+
+extension Character {
+    func charToString() -> String {
+        return String(self)
+    }
+}
 
 func getLibrary() -> String {
     print("1. Create new password libary")
@@ -68,11 +68,11 @@ func openPasswordLibrary() -> String {
     } catch {
         return "e"
     }
-    var x = createPasswordFile(directory: directory)
+    let x = createPasswordFile(directory: directory)
     return x
 }
 
-func loadJson(fileName: String) -> [PasswordEntry]? {
+func loadJson(fileName: String, flag: Int) -> [PasswordEntry]? {
     let decoder = JSONDecoder()
 
     do {
@@ -81,23 +81,27 @@ func loadJson(fileName: String) -> [PasswordEntry]? {
         return passwords
     } catch {
         print("No passwords found, try creating one.")
+        if flag == 1 {return []}
     }
-        
-    return []
+    return nil
 }
 
-func readEntry(directory: String) {
-    let x = loadJson(fileName: (directory + "/passwords.json"))
+func printEntries(passwords: [PasswordEntry]) { //convert to extension?
     print("Account entries:")
-    for (i, entry) in x!.enumerated() {
+    for (i, entry) in passwords.enumerated() {
         print("\(i+1): \(entry.siteName), \(entry.username)")
     }
+}
+
+func readEntries(passwords: [PasswordEntry]) {
+    printEntries(passwords: passwords)
+    
     var viewAccounts = true
     repeat {
         print("Select an account to view:")
         var userSelect = Int(readLine() ?? "-1") ?? -1
-        if (userSelect != -1) && (userSelect <= x!.count) {
-            var curPass = x![userSelect - 1]
+        if (userSelect != -1) && (userSelect <= passwords.count) {
+            var curPass = passwords[userSelect - 1]
             print("Website: \(curPass.siteName)")
             print("Username: \(curPass.username)")
             print("Password: \(curPass.password)")
@@ -106,15 +110,74 @@ func readEntry(directory: String) {
         print("View another account?")
         print("1: yes")
         print("2: no")
-        
+                
         var moreAcc = Int(readLine() ?? "2") ?? 2
         if moreAcc == 2 {viewAccounts = false}
         
     } while viewAccounts
 }
 
-func createEntry(directory: String) {
+func generatePassword(passLength: Int) -> String {
+    let allowedCharactersInPass = Array("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*")
+    var password = ""
     
+    for _ in 1...passLength {
+        password += allowedCharactersInPass.randomElement()!.charToString()
+    }
+    
+    return password
+}
+
+func writeToFile(directory: String, passwords: [PasswordEntry]) {
+    let jsonEncoder = JSONEncoder()
+    let fileManager = FileManager.default
+    do {
+        let data = try jsonEncoder.encode(passwords)
+        let encodedData = String(data: data, encoding: .utf8)!
+        do {
+            try encodedData.write(toFile: directory, atomically: false, encoding: .utf8)
+        } catch {
+            print("Could not write to file")
+        }
+    } catch {
+        print("Could not encode password data to JSON")
+    }
+}
+
+func createEntry(passwords: inout [PasswordEntry], directory: String) {
+    var createEntries = true, websiteInput = true, usernameInput = true
+    var website: String, username: String, passLength: Int
+    repeat {
+        print()
+        print("Password entry creation, enter the following")
+        
+        repeat {
+            print("Website:")
+            website = readLine() ?? ""
+            print("Website: \(website), correct? 1. Yes, 2. No")
+            if (Int(readLine() ?? "2") ?? 2) == 1 {websiteInput = false}
+        } while websiteInput
+        
+        repeat {
+            print("Username:")
+            username = readLine() ?? ""
+            print("Username: \(username), correct? 1. Yes, 2. No")
+            if (Int(readLine() ?? "2") ?? 2) == 1 {usernameInput = false}
+        } while usernameInput
+        
+        repeat {
+            print("How many characters in password?")
+            passLength = (Int(readLine() ?? "-1") ?? -1)
+            print("Password length: \(passLength), correct? 1. Yes, 2. No")
+            if (Int(readLine() ?? "2") ?? 2) == 2 {passLength = 0}
+        } while passLength <= 0
+        let password = generatePassword(passLength: passLength)
+        let newPass = PasswordEntry(siteName: website, username: username, password: password)
+        passwords.append(newPass)
+        writeToFile(directory: directory, passwords: passwords)
+        print("New password added to library")
+        return
+    } while createEntries
 }
 
 func updateEntry(directory: String) {
@@ -128,6 +191,15 @@ func deleteEntry(directory: String) {
 func passwordInteract(directory: String) {
     stayInProgram = true
     var passwordChoice: Int
+    guard var passwords = loadJson(fileName: (directory + "/passwords.json"), flag: 0) else {
+        print("Create a Password? 1: yes, 2: no")
+        if (Int(readLine() ?? "2" ) ?? 2) == 1 {
+            var passwords = loadJson(fileName: (directory + "/passwords.json"), flag: 1)
+            createEntry(passwords: &passwords!, directory: (directory + "/passwords.json"))
+            print("Open libarary again to access options.")
+        }
+        return //no passwords found
+    }
     repeat {
         print("What would you like to do?")
         print(" 1. Read password entry")
@@ -140,17 +212,17 @@ func passwordInteract(directory: String) {
         
         switch passwordChoice {
         case 1:
-            readEntry(directory: directory)
+            readEntries(passwords: passwords)
             break
         case 2:
+            createEntry(passwords: &passwords, directory: (directory + "/passwords.json"))
             break
         case 3:
             break
         case 4:
             break
         case 5:
-            stayInProgram = false
-            continue
+            return
         default:
             break
         }
