@@ -7,8 +7,8 @@ extension Character {
 }
 
 func getLibrary() -> String {
-    print("1. Create new password libary")
-    print("2. Open existing password libary")
+    print("1. Create new password library")
+    print("2. Open existing password library")
     print("3. Exit")
     let choiceNum = Int(readLine() ?? "-1") ?? -1
     
@@ -102,9 +102,9 @@ func readEntries(passwords: [PasswordEntry]) {
         var userSelect = Int(readLine() ?? "-1") ?? -1
         if (userSelect != -1) && (userSelect <= passwords.count) {
             var curPass = passwords[userSelect - 1]
-            print("Website: \(curPass.siteName)")
-            print("Username: \(curPass.username)")
-            print("Password: \(curPass.password)")
+            print(" Website: \(curPass.siteName)")
+            print(" Username: \(curPass.username)")
+            print(" Password: \(curPass.password)")
         }
         
         print("View another account?")
@@ -205,9 +205,9 @@ func updateEntry(passwords: inout [PasswordEntry], directory: String) {
             if (entrySelect != -1) && (entrySelect <= passwords.count) {
                 curPass = passwords[entrySelect - 1]
                 print("Choose an entry to update:")
-                print("1. Website: \(curPass?.siteName ?? "N/A")")
-                print("2. Username: \(curPass?.username ?? "N/A")")
-                print("3. Password: \(curPass?.password ?? "N/A")")
+                print(" 1. Website: \(curPass?.siteName ?? "N/A")")
+                print(" 2. Username: \(curPass?.username ?? "N/A")")
+                print(" 3. Password: \(curPass?.password ?? "N/A")")
                 print("-1. Exit and save changes")
             }
             // choose the field to update
@@ -244,8 +244,42 @@ func updateEntry(passwords: inout [PasswordEntry], directory: String) {
     }   while selectEntry
 }
 
-func deleteEntry(passwords: [PasswordEntry], directory: String) {
-    
+func deleteEntry(passwords: inout [PasswordEntry], directory: String) {
+    var selectEntry = true
+    var curPass: PasswordEntry?
+    print("Choose an entry to delete.")
+    repeat {
+        // print out all entries in the library file
+        printEntries(passwords: passwords)
+        print("-1: Exit and save changes")
+        // user chooses which entry to update
+        var entrySelect = Int(readLine() ?? "-1") ?? -1
+        // if -1, save and exit
+        if (entrySelect == -1) {
+            print("Saving changes...")
+            // save changes to entry
+            writeToFile(directory: directory, passwords: passwords)
+            print("All changes saved.")
+            selectEntry = false
+            return
+        }
+        else if (entrySelect != -1) && (entrySelect <= passwords.count) {
+            curPass = passwords[entrySelect - 1]
+            print("Delete this entry?")
+            print(" Website: \(curPass?.siteName ?? "N/A")")
+            print(" Username: \(curPass?.username ?? "N/A")")
+            print(" Password: \(curPass?.password ?? "N/A")")
+            print("1. Yes, delete this entry")
+            print("2. No, don't delete this entry")
+            var deleteEntry = Int(readLine() ?? "2") ?? 2
+            if (deleteEntry == 1) {
+                // save changes to field
+                if let curPass = curPass, let index = passwords.firstIndex(where: { $0.id == curPass.id }) {
+                    passwords.remove(at: index)
+                }
+            }
+        }
+    }   while selectEntry
 }
 
 func passwordInteract(directory: String) {
@@ -281,7 +315,7 @@ func passwordInteract(directory: String) {
             updateEntry(passwords: &passwords, directory: (directory + "/passwords.json"))
             break
         case 4:
-            deleteEntry(passwords: passwords, directory: (directory + "/passwords.json"))
+            deleteEntry(passwords: &passwords, directory: (directory + "/passwords.json"))
             break
         case 5:
             return
