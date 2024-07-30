@@ -180,11 +180,71 @@ func createEntry(passwords: inout [PasswordEntry], directory: String) {
     } while createEntries
 }
 
-func updateEntry(directory: String) {
-    
+func updateEntry(passwords: inout [PasswordEntry], directory: String) {
+    var selectEntry = true, selectField = true
+    var curPass: PasswordEntry?
+    print("Choose an entry to update.")
+    repeat {
+        // print out all entries in the library file
+        printEntries(passwords: passwords)
+        print("-1: Exit and save changes")
+        // user chooses which entry to update
+        var entrySelect = Int(readLine() ?? "-1") ?? -1
+        // if -1, save and exit
+        if (entrySelect == -1) {
+            selectField = false
+            print("Saving changes...")
+            // save changes to entry
+            writeToFile(directory: directory, passwords: passwords)
+            print("All changes saved.")
+            selectEntry = false
+            return
+        }
+        // print out all fields of the current entry
+        repeat {
+            if (entrySelect != -1) && (entrySelect <= passwords.count) {
+                curPass = passwords[entrySelect - 1]
+                print("Choose an entry to update:")
+                print("1. Website: \(curPass?.siteName ?? "N/A")")
+                print("2. Username: \(curPass?.username ?? "N/A")")
+                print("3. Password: \(curPass?.password ?? "N/A")")
+                print("-1. Exit and save changes")
+            }
+            // choose the field to update
+            var fieldSelect = Int(readLine() ?? "-1") ?? -1
+            // update the field
+            switch fieldSelect {
+            case 1:
+                // edit website name
+                print("Enter new website:")
+                let newSiteName = readLine() ?? ""
+                curPass?.siteName = newSiteName
+                break
+            case 2:
+                // edit username
+                print("Enter new username:")
+                let newUsername = readLine() ?? ""
+                curPass?.username = newUsername
+                break
+            case 3:
+                // edit password
+                print("Enter new password:")
+                let newPassword = readLine() ?? ""
+                curPass?.password = newPassword
+                break
+            default:
+                break
+            }
+            // save changes to field
+            if let curPass = curPass, let index = passwords.firstIndex(where: { $0.id == curPass.id }) {
+                passwords[index] = curPass
+            }
+            selectField = false
+        }   while selectField
+    }   while selectEntry
 }
 
-func deleteEntry(directory: String) {
+func deleteEntry(passwords: [PasswordEntry], directory: String) {
     
 }
 
@@ -218,8 +278,10 @@ func passwordInteract(directory: String) {
             createEntry(passwords: &passwords, directory: (directory + "/passwords.json"))
             break
         case 3:
+            updateEntry(passwords: &passwords, directory: (directory + "/passwords.json"))
             break
         case 4:
+            deleteEntry(passwords: passwords, directory: (directory + "/passwords.json"))
             break
         case 5:
             return
