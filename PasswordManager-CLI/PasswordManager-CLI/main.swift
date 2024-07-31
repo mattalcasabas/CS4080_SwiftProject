@@ -1,5 +1,6 @@
 import Foundation
 
+//converts character to a string
 extension Character {
     func charToString() -> String {
         return String(self)
@@ -7,17 +8,22 @@ extension Character {
 }
 
 func getLibrary() -> String {
+    //library options
     print("1. Create new password library")
     print("2. Open existing password library")
     print("3. Exit")
+    //collect user choice
     let choiceNum = Int(readLine() ?? "-1") ?? -1
     
     switch choiceNum {
     case 1:
+        //creates new library location
         return createLibrary()
     case 2:
+        //opens existing library
         return openPasswordLibrary()
     case 3:
+        //sends quit signal to main loop
         return "q"
     default:
         print("Invalid entry, try again")
@@ -32,6 +38,7 @@ func createPasswordFile(directory: String) -> String {
     let createFile = Int(readLine() ?? "2") ?? 2
     if (createFile == 1) {
         let fileManager = FileManager.default
+        //create passwords.json file at current directory
         fileManager.createFile(atPath: (directory + "/passwords.json"), contents: nil)
         return directory
     }
@@ -41,13 +48,16 @@ func createPasswordFile(directory: String) -> String {
 func createLibrary() -> String {
     let fileManager = FileManager.default
     print("Enter file path for the new password library:")
-    let directory = readLine()!
+    //Gets directory location from user
+    let directory = readLine() ?? ""
     
     do {
+        //if valid location found, create new directory
         try fileManager.createDirectory(atPath: directory, withIntermediateDirectories: false)
         print("Created library at \(directory)")
         return directory
     } catch {
+        //Warn user if location was not valid
         print("Error, cannot create library")
         return "e"
     }
@@ -56,9 +66,11 @@ func createLibrary() -> String {
 func openPasswordLibrary() -> String {
     let fileManager = FileManager.default
     print("Enter file path for the password library:")
-    let directory = readLine()!
+    //Gets directory from user
+    let directory = readLine() ?? ""
     
     do {
+        //Try to locate passwords.json file in given directory
         let files = try fileManager.contentsOfDirectory(atPath: directory)
         for file in files {
             if file == "passwords.json" {
@@ -68,6 +80,7 @@ func openPasswordLibrary() -> String {
     } catch {
         return "e"
     }
+    //If passwords.json cannot be found, offer to create one
     let x = createPasswordFile(directory: directory)
     return x
 }
@@ -76,10 +89,12 @@ func loadJson(fileName: String, flag: Int) -> [PasswordEntry]? {
     let decoder = JSONDecoder()
 
     do {
+        //Gather data from passwords.json and decode it into a struct
         let data = try Data(contentsOf: URL(fileURLWithPath: fileName))
         let passwords = try decoder.decode([PasswordEntry].self, from: data)
         return passwords
     } catch {
+        //Empty passwords.json file
         print("No passwords found, try creating one.")
         if flag == 1 {return []}
     }
@@ -88,6 +103,7 @@ func loadJson(fileName: String, flag: Int) -> [PasswordEntry]? {
 
 func printEntries(passwords: [PasswordEntry]) { //convert to extension?
     print("Account entries:")
+    //Prints site name and username from each password entry, along with an index
     for (i, entry) in passwords.enumerated() {
         print("\(i+1): \(entry.siteName), \(entry.username)")
     }
@@ -100,11 +116,15 @@ func readEntries(passwords: [PasswordEntry]) {
     repeat {
         print("Select an account to view:")
         var userSelect = Int(readLine() ?? "-1") ?? -1
+        //If user selects valid entry from given range print out the elements from the entry
         if (userSelect != -1) && (userSelect <= passwords.count) {
             var curPass = passwords[userSelect - 1]
             print(" Website: \(curPass.siteName)")
             print(" Username: \(curPass.username)")
-            print(" Password: \(curPass.password)")
+            print(" Password: \(curPass.maskPassword())")
+            print("Copy password? 1. Yes, 2. No")
+            //Offer option to copy password to clipboard
+            if (Int(readLine() ?? "2") ?? 2) == 1 {curPass.copyPassword(); print("Password copied")}
         }
         
         print("View another account?")
@@ -118,9 +138,11 @@ func readEntries(passwords: [PasswordEntry]) {
 }
 
 func generatePassword(passLength: Int) -> String {
+    //Allowed characters in password
     let allowedCharactersInPass = Array("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*")
     var password = ""
     
+    //Randomly selects character from array from user given password length
     for _ in 1...passLength {
         password += allowedCharactersInPass.randomElement()!.charToString()
     }
@@ -130,11 +152,13 @@ func generatePassword(passLength: Int) -> String {
 
 func writeToFile(directory: String, passwords: [PasswordEntry]) {
     let jsonEncoder = JSONEncoder()
-    let fileManager = FileManager.default
     do {
+        //Encode passwords into data
         let data = try jsonEncoder.encode(passwords)
+        //Format data
         let encodedData = String(data: data, encoding: .utf8)!
         do {
+            //Writes data into file
             try encodedData.write(toFile: directory, atomically: false, encoding: .utf8)
         } catch {
             print("Could not write to file")
@@ -151,6 +175,7 @@ func createEntry(passwords: inout [PasswordEntry], directory: String) {
         print()
         print("Password entry creation, enter the following")
         
+        //User input for website
         repeat {
             print("Website:")
             website = readLine() ?? ""
@@ -158,6 +183,7 @@ func createEntry(passwords: inout [PasswordEntry], directory: String) {
             if (Int(readLine() ?? "2") ?? 2) == 1 {websiteInput = false}
         } while websiteInput
         
+        //User input for username
         repeat {
             print("Username:")
             username = readLine() ?? ""
@@ -165,15 +191,20 @@ func createEntry(passwords: inout [PasswordEntry], directory: String) {
             if (Int(readLine() ?? "2") ?? 2) == 1 {usernameInput = false}
         } while usernameInput
         
+        //Generate password for user with user specified length
         repeat {
             print("How many characters in password?")
             passLength = (Int(readLine() ?? "-1") ?? -1)
             print("Password length: \(passLength), correct? 1. Yes, 2. No")
             if (Int(readLine() ?? "2") ?? 2) == 2 {passLength = 0}
         } while passLength <= 0
+        
         let password = generatePassword(passLength: passLength)
+        //Create new password struct
         let newPass = PasswordEntry(siteName: website, username: username, password: password)
+        //Add password to passwords array
         passwords.append(newPass)
+        //Write passwords to file
         writeToFile(directory: directory, passwords: passwords)
         print("New password added to library")
         return
@@ -183,6 +214,7 @@ func createEntry(passwords: inout [PasswordEntry], directory: String) {
 func updateEntry(passwords: inout [PasswordEntry], directory: String) {
     var selectEntry = true, selectField = true
     var curPass: PasswordEntry?
+    var passLength: Int
     print("Choose an entry to update.")
     repeat {
         // print out all entries in the library file
@@ -207,7 +239,7 @@ func updateEntry(passwords: inout [PasswordEntry], directory: String) {
                 print("Choose an entry to update:")
                 print(" 1. Website: \(curPass?.siteName ?? "N/A")")
                 print(" 2. Username: \(curPass?.username ?? "N/A")")
-                print(" 3. Password: \(curPass?.password ?? "N/A")")
+                print(" 3. Password: \(curPass?.maskPassword() ?? "N/A")")
                 print("-1. Exit and save changes")
             }
             // choose the field to update
@@ -228,8 +260,13 @@ func updateEntry(passwords: inout [PasswordEntry], directory: String) {
                 break
             case 3:
                 // edit password
-                print("Enter new password:")
-                let newPassword = readLine() ?? ""
+                repeat {
+                    print("How many characters in password?")
+                    passLength = (Int(readLine() ?? "-1") ?? -1)
+                    print("Password length: \(passLength), correct? 1. Yes, 2. No")
+                    if (Int(readLine() ?? "2") ?? 2) == 2 {passLength = 0}
+                } while passLength <= 0
+                let newPassword =  generatePassword(passLength: passLength)
                 curPass?.password = newPassword
                 break
             default:
@@ -268,7 +305,7 @@ func deleteEntry(passwords: inout [PasswordEntry], directory: String) {
             print("Delete this entry?")
             print(" Website: \(curPass?.siteName ?? "N/A")")
             print(" Username: \(curPass?.username ?? "N/A")")
-            print(" Password: \(curPass?.password ?? "N/A")")
+            print(" Password: \(curPass?.maskPassword() ?? "N/A")")
             print("1. Yes, delete this entry")
             print("2. No, don't delete this entry")
             var deleteEntry = Int(readLine() ?? "2") ?? 2
@@ -285,6 +322,8 @@ func deleteEntry(passwords: inout [PasswordEntry], directory: String) {
 func passwordInteract(directory: String) {
     stayInProgram = true
     var passwordChoice: Int
+    
+    //Load file, if no passwords found then offer to create one
     guard var passwords = loadJson(fileName: (directory + "/passwords.json"), flag: 0) else {
         print("Create a Password? 1: yes, 2: no")
         if (Int(readLine() ?? "2" ) ?? 2) == 1 {
@@ -292,7 +331,7 @@ func passwordInteract(directory: String) {
             createEntry(passwords: &passwords!, directory: (directory + "/passwords.json"))
             print("Open libarary again to access options.")
         }
-        return //no passwords found
+        return
     }
     repeat {
         print("What would you like to do?")

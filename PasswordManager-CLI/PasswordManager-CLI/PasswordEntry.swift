@@ -12,6 +12,7 @@
  */
 
 import Foundation
+import AppKit
 
 struct PasswordEntry: Identifiable, Codable {
     // Identifiable: requires an "id" field which can help to identify a specific ID for this PasswordEntry
@@ -27,5 +28,25 @@ struct PasswordEntry: Identifiable, Codable {
         self.siteName = siteName
         self.username = username
         self.password = password
+    }
+}
+
+//Copies password to clipboard
+extension PasswordEntry {
+    func copyPassword() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(self.password, forType: .string)
+    }
+}
+
+//Masks password by converting each char to a *
+extension PasswordEntry {
+    func maskPassword() -> String {
+        var maskedPassword = ""
+        for _ in self.password {
+            maskedPassword += "*"
+        }
+        return maskedPassword
     }
 }
