@@ -251,13 +251,11 @@ func updateEntry(passwords: inout [PasswordEntry], directory: String) {
                 print("Enter new website:")
                 let newSiteName = readLine() ?? ""
                 curPass?.siteName = newSiteName
-                break
             case 2:
                 // edit username
                 print("Enter new username:")
                 let newUsername = readLine() ?? ""
                 curPass?.username = newUsername
-                break
             case 3:
                 // edit password
                 repeat {
@@ -268,7 +266,6 @@ func updateEntry(passwords: inout [PasswordEntry], directory: String) {
                 } while passLength <= 0
                 let newPassword =  generatePassword(passLength: passLength)
                 curPass?.password = newPassword
-                break
             default:
                 break
             }
@@ -346,16 +343,12 @@ func passwordInteract(directory: String) {
         switch passwordChoice {
         case 1:
             readEntries(passwords: passwords)
-            break
         case 2:
             createEntry(passwords: &passwords, directory: (directory + "/passwords.json"))
-            break
         case 3:
             updateEntry(passwords: &passwords, directory: (directory + "/passwords.json"))
-            break
         case 4:
             deleteEntry(passwords: &passwords, directory: (directory + "/passwords.json"))
-            break
         case 5:
             return
         default:
