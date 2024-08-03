@@ -58,7 +58,6 @@ func createLibrary() -> String {
         return directory
     } catch {
         //Warn user if location was not valid
-        print("Error, cannot create library")
         return "e"
     }
 }
@@ -317,7 +316,7 @@ func deleteEntry(passwords: inout [PasswordEntry], directory: String) {
 }
 
 func passwordInteract(directory: String) {
-    stayInProgram = true
+    var stayInProgram = true
     var passwordChoice: Int
     
     //Load file, if no passwords found then offer to create one
@@ -358,24 +357,23 @@ func passwordInteract(directory: String) {
     } while stayInProgram
 }
 
+func passwordMain() throws {
+    var stayInProgram = true
+    var curDirectory: String
+    print("Welcome to the password manager!")
 
-var stayInProgram = true
-var curDirectory: String
-print("Welcome to the password manager!")
+    repeat {
+        curDirectory = getLibrary()
+        
+        if (curDirectory.first == "e") {
+            throw passError.invalidLocation
+        } else if curDirectory == "q" {
+            stayInProgram = false
+            continue
+        }  else {
+            passwordInteract(directory: curDirectory)
+        }
+    } while stayInProgram
+}
 
-repeat {
-    curDirectory = getLibrary()
-    
-    if (curDirectory.first == "e") {
-        print("error")
-        continue
-    } else if curDirectory == "q" {
-        stayInProgram = false
-        continue
-    } else if curDirectory == "." {
-        continue
-    } else {
-        passwordInteract(directory: curDirectory)
-    }
-    
-} while stayInProgram
+try passwordMain()

@@ -50,3 +50,7 @@ extension PasswordEntry {
         return maskedPassword
     }
 }
+
+enum passError: Error {
+    case invalidLocation
+}
