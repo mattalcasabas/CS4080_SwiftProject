@@ -7,45 +7,73 @@ extension Character {
     }
 }
 
-func getLibrary() -> String {
-    //library options
-    print("1. Create new password library")
-    print("2. Open existing password library")
-    print("3. Exit")
-    //collect user choice
-    let choiceNum = Int(readLine() ?? "-1") ?? -1
+// this current PasswordLibrary instance
+var currentLibrary: PasswordLibrary?
+
+func getLibrary() -> PasswordLibrary? {
+        //library options
     
-    switch choiceNum {
-    case 1:
-        //creates new library location
-        return createLibrary()
-    case 2:
-        //opens existing library
-        return openPasswordLibrary()
-    case 3:
-        //sends quit signal to main loop
-        return "q"
-    default:
-        print("Invalid entry, try again")
-        return "e"
-    }
+        print("1. Create new password library")
+        print("2. Open existing password library")
+        print("3. Exit")
+    
+        //collect user choice
+        let choiceNum = Int(readLine() ?? "-1") ?? -1
+    
+        switch choiceNum {
+        case 1:
+            //creates new library location
+            return createLibrary()
+        case 2:
+            //opens existing library
+            return openPasswordLibrary()!
+        case 3:
+            //sends quit signal to main loop
+            return nil
+        default:
+            print("Invalid entry, try again")
+            return nil
+        }
 }
 
-func createPasswordFile(directory: String) -> String {
-    print("No password file found in this directory, Create?")
-    print("1. Yes")
-    print("2. No")
-    let createFile = Int(readLine() ?? "2") ?? 2
-    if (createFile == 1) {
-        let fileManager = FileManager.default
-        //create passwords.json file at current directory
-        fileManager.createFile(atPath: (directory + "/passwords.json"), contents: nil)
-        return directory
+func openPasswordLibrary() -> PasswordLibrary? {
+    print("Enter file path for the password library:")
+    let directory = readLine() ?? ""
+    let fileManager = FileManager.default
+    
+    do {
+        // does passwords.json exist in the library?
+        let files = try fileManager.contentsOfDirectory(atPath: directory)
+        if files.contains("passwords.json") {
+            let url = URL(fileURLWithPath: directory).appendingPathComponent("passwords.json")
+            // open new PasswordLibrary instance with the url received here
+            return PasswordLibrary(storageURL: url)
+        }
+        else {
+            print("openPasswordLibrary(): couldn't find passwords.json. Will initialize new library.")
+            // create a new passwords.json file at current directory
+            fileManager.createFile(atPath: (directory + "/passwords.json"), contents: nil)
+            let url = URL(fileURLWithPath: directory).appendingPathComponent("passwords.json")
+            return PasswordLibrary(storageURL: url)
+        }
+    } catch {
+        print("openPasswordLibrary(): error opening library: \(error)")
+        return nil
     }
-    return "e"
+//    print("No password file found in this directory, Create?")
+//    print("1. Yes")
+//    print("2. No")
+//    let createFile = Int(readLine() ?? "2") ?? 2
+//    if (createFile == 1) {
+
+//        //create passwords.json file at current directory
+//        fileManager.createFile(atPath: (directory + "/passwords.json"), contents: nil)
+//        return directory
+//    }
+//    return "e"
 }
 
-func createLibrary() -> String {
+func createLibrary() -> PasswordLibrary? {
     let fileManager = FileManager.default
     print("Enter file path for the new password library:")
     //Gets directory location from user
@@ -55,35 +83,38 @@ func createLibrary() -> String {
         //if valid location found, create new directory
         try fileManager.createDirectory(atPath: directory, withIntermediateDirectories: false)
         print("Created library at \(directory)")
-        return directory
+        let url = URL(fileURLWithPath: directory).appendingPathComponent("passwords.json")
+        return PasswordLibrary(storageURL: url)
     } catch {
         //Warn user if location was not valid
-        return "e"
+        print("createLibrary(): could not create the library. Location may be invalid or already exists.")
+        return nil
     }
 }
 
-func openPasswordLibrary() -> String {
-    let fileManager = FileManager.default
-    print("Enter file path for the password library:")
-    //Gets directory from user
-    let directory = readLine() ?? ""
-    
-    do {
-        //Try to locate passwords.json file in given directory
-        let files = try fileManager.contentsOfDirectory(atPath: directory)
-        for file in files {
-            if file == "passwords.json" {
-                return directory
-            }
-        }
-    } catch {
-        return "e"
-    }
-    //If passwords.json cannot be found, offer to create one
-    let x = createPasswordFile(directory: directory)
-    return x
-}
+//func openPasswordLibrary() -> String {
+//    let fileManager = FileManager.default
+//    print("Enter file path for the password library:")
+//    //Gets directory from user
+//    let directory = readLine() ?? ""
+//    
+//    do {
+//        //Try to locate passwords.json file in given directory
+//        let files = try fileManager.contentsOfDirectory(atPath: directory)
+//        for file in files {
+//            if file == "passwords.json" {
+//                return directory
+//            }
+//        }
+//    } catch {
+//        return "e"
+//    }
+//    //If passwords.json cannot be found, offer to create one
+//    let x = createPasswordFile(directory: directory)
+//    return x
+//}
 
+/*
 func loadJson(fileName: String, flag: Int) -> [PasswordEntry]? {
     let decoder = JSONDecoder()
 
@@ -135,7 +166,7 @@ func readEntries(passwords: [PasswordEntry]) {
         
     } while viewAccounts
 }
-
+*/
 func generatePassword(passLength: Int) -> String {
     //Allowed characters in password
     let allowedCharactersInPass = Array("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*")
@@ -148,7 +179,7 @@ func generatePassword(passLength: Int) -> String {
     
     return password
 }
-
+/*
 func writeToFile(directory: String, passwords: [PasswordEntry]) {
     let jsonEncoder = JSONEncoder()
     do {
@@ -314,21 +345,22 @@ func deleteEntry(passwords: inout [PasswordEntry], directory: String) {
         }
     }   while selectEntry
 }
+*/
 
-func passwordInteract(directory: String) {
+func passwordInteract(library: PasswordLibrary) {
     var stayInProgram = true
-    var passwordChoice: Int
     
-    //Load file, if no passwords found then offer to create one
-    guard var passwords = loadJson(fileName: (directory + "/passwords.json"), flag: 0) else {
-        print("Create a Password? 1: yes, 2: no")
-        if (Int(readLine() ?? "2" ) ?? 2) == 1 {
-            var passwords = loadJson(fileName: (directory + "/passwords.json"), flag: 1)
-            createEntry(passwords: &passwords!, directory: (directory + "/passwords.json"))
-            print("Open libarary again to access options.")
-        }
-        return
-    }
+//    //Load file, if no passwords found then offer to create one
+//    guard var passwords = loadJson(fileName: (directory + "/passwords.json"), flag: 0) else {
+//        print("Create a Password? 1: yes, 2: no")
+//        if (Int(readLine() ?? "2" ) ?? 2) == 1 {
+//            var passwords = loadJson(fileName: (directory + "/passwords.json"), flag: 1)
+//            createEntry(passwords: &passwords!, directory: (directory + "/passwords.json"))
+//            print("Open libarary again to access options.")
+//        }
+//        return
+//    }
+    
     repeat {
         print("What would you like to do?")
         print(" 1. Read password entry")
@@ -337,17 +369,71 @@ func passwordInteract(directory: String) {
         print(" 4. Delete an existing entry")
         print(" 5. Go back")
         
-        passwordChoice = Int(readLine() ?? "-1") ?? -1
+        let passwordChoice = Int(readLine() ?? "-1") ?? -1
         
         switch passwordChoice {
         case 1:
-            readEntries(passwords: passwords)
+            // read password entry
+             // readEntries(passwords: passwords)
+            library.listEntries()
+            print("Select an account to view: ")
+            if let index = Int(readLine() ?? "-1"), let entry = library.printEntry(at: index - 1) {
+                print("Website: \(entry.siteName)")
+                print("Username: \(entry.username)")
+                print("Password: \(entry.maskPassword())")
+            }
         case 2:
-            createEntry(passwords: &passwords, directory: (directory + "/passwords.json"))
+            // create password entry
+            // createEntry(passwords: &passwords, directory: (directory + "/passwords.json"))
+            print("Enter website: ")
+            let newSiteName = readLine() ?? ""
+            print("Enter username: ")
+            let newUsername = readLine() ?? ""
+            print("Generate a random password?")
+            print(" 1. Yes, create a random password")
+            print(" 2. No, let me enter my own")
+            var newPassword = ""
+            let genPassChoice = Int(readLine() ?? "2")
+            switch genPassChoice {
+            case 1:
+                print("How many characters required for this password? (default: 10)")
+                let passLength = Int(readLine() ?? "-1")
+                newPassword = generatePassword(passLength: passLength ?? 10)
+                print("Generated password: \(newPassword)")
+            case 2:
+                print("Enter password: ")
+                newPassword = readLine() ?? ""
+            default:
+                break
+            }
+            library.addEntry(siteName: newSiteName, username: newUsername, password: newPassword)
         case 3:
-            updateEntry(passwords: &passwords, directory: (directory + "/passwords.json"))
+            // update existing password entry
+            // updateEntry(passwords: &passwords, directory: (directory + "/passwords.json"))
+            library.listEntries()
+            print("Select an account to update: ")
+            let index = Int(readLine() ?? "-1")
+            if index == index {
+                print("Enter new site name (leave blank to skip): ")
+                let newSiteName = readLine() ?? ""
+                print("Enter new username (leave blank to skip): ")
+                let newUsername = readLine() ?? ""
+                print("Enter new password (leave blank to skip): ")
+                let newPassword = readLine() ?? ""
+                library.updateEntry(at: index! - 1, siteName: newSiteName, username: newUsername, password: newPassword)
+            }
         case 4:
-            deleteEntry(passwords: &passwords, directory: (directory + "/passwords.json"))
+            // delete existing password entry
+            // deleteEntry(passwords: &passwords, directory: (directory + "/passwords.json"))
+            library.listEntries()
+            print("Select an account to delete: ")
+            if let index = Int(readLine() ?? "-1") {
+                let entry = library.printEntry(at: index - 1)
+                if let entry = entry {
+                    library.removeEntry(by: entry.id)
+                    print("Entry deleted.")
+                }
+            }
         case 5:
             return
         default:
@@ -359,19 +445,26 @@ func passwordInteract(directory: String) {
 
 func passwordMain() throws {
     var stayInProgram = true
-    var curDirectory: String
+    //var curDirectory: String
     print("Welcome to the password manager!")
 
     repeat {
-        curDirectory = getLibrary()
-        
-        if (curDirectory.first == "e") {
-            throw passError.invalidLocation
-        } else if curDirectory == "q" {
+//        curDirectory = getLibrary()
+//        
+//        if (curDirectory.first == "e") {
+//            throw passError.invalidLocation
+//        } else if curDirectory == "q" {
+//            stayInProgram = false
+//            continue
+//        }  else {
+//            passwordInteract(directory: curDirectory)
+//        }
+        if let library = getLibrary() {
+            currentLibrary = library
+            passwordInteract(library: currentLibrary!)
+        }
+        else {
             stayInProgram = false
-            continue
-        }  else {
-            passwordInteract(directory: curDirectory)
         }
     } while stayInProgram
 }
