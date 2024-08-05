@@ -31,15 +31,6 @@ struct PasswordEntry: Identifiable, Codable {
     }
 }
 
-//Copies password to clipboard
-extension PasswordEntry {
-    func copyPassword() {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(self.password, forType: .string)
-    }
-}
-
 //Masks password by converting each char to a *
 extension PasswordEntry {
     func maskPassword() -> String {
@@ -50,6 +41,16 @@ extension PasswordEntry {
         return maskedPassword
     }
 }
+
+//Copies password to clipboard
+extension PasswordEntry {
+    func copyPassword() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(self.password, forType: .string)
+    }
+}
+
 
 enum passError: Error {
     case invalidLocation
