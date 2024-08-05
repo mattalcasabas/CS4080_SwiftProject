@@ -157,13 +157,12 @@ func passwordInteract(library: PasswordLibrary) {
             print("Select an account to update: ")
             let index = Int(readLine() ?? "-1")
             if index == index {
-                print("Enter new site name: ")
+                print("Enter new site name (Leave blank to skip): ")
                 let newSiteName = readLine() ?? ""
-                print("Enter new username: ")
+                print("Enter new username (Leave blank to skip): ")
                 let newUsername = readLine() ?? ""
-                print("Enter num of chars in password: ")
-                let passLen = Int(readLine() ?? "22") ?? 22
-                let newPassword = generatePassword(passLength: passLen)
+                print("Enter new password (Leave blank to skip): ")
+                let newPassword = readLine() ?? ""
                 library.updateEntry(at: index! - 1, siteName: newSiteName, username: newUsername, password: newPassword)
             }
         case 4:

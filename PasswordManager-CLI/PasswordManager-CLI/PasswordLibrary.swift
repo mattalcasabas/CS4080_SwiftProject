@@ -100,28 +100,28 @@ class PasswordLibrary {
     }
     
     // update a specific entry given an index
-    func updateEntry(at index: Int, siteName: String?, username: String?, password: String?) {
-        guard index >= 0 && index < entries.count else {
-            print("updateEntry(): Index \(index) is invalid.")
-            return
+        func updateEntry(at index: Int, siteName: String?, username: String?, password: String?) {
+            guard index >= 0 && index < entries.count else {
+                print("updateEntry(): Index \(index) is invalid.")
+                return
+            }
+            
+            // if given site name, update site name
+            if let siteName = siteName, !siteName.isEmpty {
+                entries[index].siteName = siteName
+            }
+            // if given username, update username
+            if let username = username, !username.isEmpty {
+                entries[index].username = username
+            }
+            // if given password, update password
+            if let password = password, !password.isEmpty {
+                entries[index].password = password
+            }
+            
+            // save changes to disk
+            saveEntries()
         }
-        
-        // if given site name, update site name
-        if let siteName = siteName {
-            entries[index].siteName = siteName
-        }
-        // if given username, update username
-        if let username = username {
-            entries[index].username = username
-        }
-        // if given password, update password
-        if let password = password {
-            entries[index].password = password
-        }
-        
-        // save changes to disk
-        saveEntries()
-    }
     
     // load the password file from a specific URL
     func loadLibrary(from url: URL) {
